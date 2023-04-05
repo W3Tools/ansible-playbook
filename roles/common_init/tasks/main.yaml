@@ -1,0 +1,48 @@
+---
+- name: Set the hostname
+  hostname:
+    name: "{{ hostname }}"
+
+- name: Disable selinux
+  lineinfile:
+    path: /etc/selinux/config
+    regexp: "^SELINUX=.*"
+    line: SELINUX=disabled
+  ignore_errors: True
+
+- name: Get all service status
+  ansible.builtin.service_facts:
+
+- name: Disable firewall
+  ignore_errors: True
+  service:
+    name: firewalld
+    state: stopped
+  when: ansible_facts.services['firewalld.service'] is defined
+
+- name: Configure sshd
+  template:
+    src: ../templates/sshd_config.j2
+    dest: /etc/ssh/sshd_config
+  register: config_status
+
+- name: Restart sshd
+  service:
+    name: sshd
+    state: restarted
+  when: config_status.changed == true
+
+- name: Kernel parameter setting
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-sysctl.conf
+  loop:
+    - { name: "kernel.panic", value: "10" }
+    - { name: "vm.dirty_ratio", value: "10" }
+    - { name: "vm.dirty_background_ratio", value: "1" }
+    - { name: "vm.vfs_cache_pressure", value: "50" }
+    - { name: "fs.file-max", value: "8388608" }
+    - { name: "vm.max_map_count", value: "262144" }
+    - { name: "net.core.default_qdisc", value: "fq_codel" }
+    - { name: "net.ipv4.tcp_congestion_control", value: "bbr" }

@@ -1,0 +1,12 @@
+---
+- hosts: all
+  become: true
+  gather_facts: yes
+  roles:
+    - common_init
+    - common_init_disk
+    - common_init_user
+    - deny_default_user
+    - install_golang
+    - install_supervisord
+    - install_docker

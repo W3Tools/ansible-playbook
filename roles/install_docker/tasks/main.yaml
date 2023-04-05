@@ -1,0 +1,78 @@
+- name: Install yum-utils
+  dnf:
+    name: yum-utils
+    state: present
+
+- name: Install git
+  dnf:
+    name: git
+    state: present
+
+- name: Install docker (Amazon Linux)
+  dnf:
+    name: docker
+    state: present
+  when: ansible_facts['distribution'] == "Amazon"
+
+- name: Download docker compose{{ compose_version }}
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/v{{ compose_version }}/docker-compose-linux-x86_64"
+    dest: "{{ plugin_path }}/docker-compose"
+    mode: 0555
+    checksum: "sha256:{{ compose_sha256 }}"
+
+- name: Add global cgroup for docker
+  copy:
+    dest: "/etc/systemd/system/docker_limit.slice"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Docker global cgroup limit
+      Before=slices.target
+
+      [Slice]
+      MemoryHigh={{ (ansible_memtotal_mb * 0.85) | int }}M
+      MemoryMax={{ (ansible_memtotal_mb * 0.9) | int }}M
+      MemoryLimit={{ (ansible_memtotal_mb * 0.9) | int }}M
+
+- name: Create docker config file
+  file:
+    path: /etc/docker
+    force: true
+    recurse: true
+    state: directory
+    owner: root
+    group: docker
+    mode: "0755"
+
+- name: Copy daemon.json file
+  copy:
+    dest: "/etc/docker/daemon.json"
+    owner: root
+    group: docker
+    mode: "0644"
+    src: daemon.json
+
+- name: systemd daemon-reload
+  systemd:
+    daemon_reload: yes
+
+- name: Strtup docker
+  systemd:
+    name: docker.service
+    state: restarted
+    enabled: yes
+
+- name: Check if docker-compose is exists
+  stat:
+    path: "{{ compose_hub_dest }}"
+  register: hub_stat
+
+- name: Clone docker-compose
+  git:
+    repo: "https://github.com/W3Tools/docker-compose.git"
+    dest: "{{ compose_hub_dest }}"
+    update: yes
+  when: not hub_stat.stat.exists

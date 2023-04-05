@@ -1,0 +1,5 @@
+tmp_dir: /root/tmp
+plugin_path: /usr/libexec/docker/cli-plugins
+compose_hub_dest: /data/docker-compose
+compose_version: 2.15.1
+compose_sha256: bcfd9ea51dee4c19dccdfaeef0e7956ef68bf14f3d175933742061a7271ef0f5

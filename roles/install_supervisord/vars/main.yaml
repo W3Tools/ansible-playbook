@@ -1,0 +1,8 @@
+tmp_dir: /root/tmp
+tools_dir: /data/app/tools
+config_dir: /data/app/etc
+logs_dir: /data/app/logs
+app_bin_dir: /data/app/bin
+
+supervisord_version: 0.7.3
+supervisord_tar_gz_sha256: f0308bab9c781be06ae59c4588226a5a4b7576ae7e5ea07b9dc86edc0b998de0

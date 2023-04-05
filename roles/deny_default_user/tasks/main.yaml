@@ -1,0 +1,18 @@
+---
+- name: Deny Ubuntu Linux
+  user:
+    name: "ubuntu"
+    shell: "/sbin/nologin"
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: Deny CentOS Linux
+  user:
+    name: "centos"
+    shell: "/sbin/nologin"
+  when: ansible_facts['distribution'] == "CentOS"
+
+- name: Deny Amazon Linux
+  user:
+    name: "ec2-user"
+    shell: "/sbin/nologin"
+  when: ansible_facts['distribution'] == "Amazon"
