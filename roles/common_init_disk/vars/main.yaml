@@ -1,0 +1,8 @@
+device_name: /dev/nvme1n1
+partition_name: /dev/nvme1n1p1
+mount_dest: /data
+init_dir: 
+  - /data/app/bin
+  - /data/app/etc
+  - /data/app/src
+  - /data/app/tools

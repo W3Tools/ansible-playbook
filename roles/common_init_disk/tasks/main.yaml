@@ -1,0 +1,44 @@
+---
+- name: Determine if device exists
+  shell: test -b {{ device_name }}
+  register: device_exists
+  ignore_errors: True
+
+- name: Initialize disk
+  block:
+    - name: Disk Partition {{ device_name }}
+      parted:
+        device: '{{ device_name }}'
+        label: gpt
+        number: 1
+        state: present
+      register: status
+
+    - name: Disk Initialize {{ partition_name }}
+      filesystem:
+        dev: '{{ partition_name }}'
+        fstype: ext4
+        force: true
+      when: status.changed == true
+
+    - name: Create dir {{ mount_dest }}
+      file:
+        path: '{{ mount_dest }}'
+        state: directory
+
+    - name: Mount device {{ mount_dest }}
+      mount:
+        path: '{{ mount_dest }}'
+        src: '{{ partition_name }}'
+        boot: yes
+        opts: noatime
+        fstab: /etc/fstab
+        fstype: ext4
+        state: mounted
+  when: device_exists.rc == 0
+
+- name: Create dirs
+  file:
+    name: '{{ item }}'
+    state: directory
+  with_items: '{{ init_dir }}'
