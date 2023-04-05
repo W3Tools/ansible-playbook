@@ -1,0 +1,49 @@
+---
+- name: Create user group -> {{ admin_group }}
+  group:
+    name: '{{ admin_group }}'
+    state: present
+
+- name: Create user group -> {{ dev_group }}
+  group:
+    name: '{{ dev_group }}'
+    state: present
+
+- name: Assign superadmin group to sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: '%{{ admin_group }} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+    state: present
+
+- name: Create Default User
+  user:
+    name: '{{ item.user }}'
+    groups: '{{ admin_group }}'
+    shell: '{{ item.bash }}'
+  with_items: '{{ default_users }}'
+
+- name: Deploy SSH Key For Default User
+  authorized_key:
+    key: "{{ lookup('file', '../user_public_keys/{{ item.key }}') }}"
+    user: '{{ item.user }}'
+    state: present
+    exclusive: true
+  with_items: '{{ default_users }}'
+
+- name: Create Member
+  user:
+    name: '{{ item.user }}'
+    groups: '{{ item.group }}'
+    shell: '{{ item.bash }}'
+  with_items: '{{ users }}'
+  when: inventory_hostname in item.hosts
+
+- name: Deploy SSH Key For Member
+  authorized_key:
+    key: "{{ lookup('file', '../user_public_keys/{{ item.key }}') }}"
+    user: '{{ item.user }}'
+    state: present
+    exclusive: true
+  with_items: '{{ users }}'
+  when: inventory_hostname in item.hosts

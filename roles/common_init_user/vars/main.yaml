@@ -1,0 +1,10 @@
+admin_group: superadmin_group
+dev_group: developer_group
+
+default_users:
+  - { 'user': 'w3tools', 'key': 'w3tools.pub', 'bash': '/bin/bash' }
+
+users:
+  - { 'user': 'w3tools', 'group': '{{ admin_group }}', 'hosts': '{{ hosts_list.w3tools }}', 'key': 'w3tools.pub', 'bash': '/bin/bash' }
+
+hosts_list: { 'w3tools': ['local-stage', 'local'] }
